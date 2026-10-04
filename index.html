@@ -35,8 +35,8 @@ body.night #panel{filter:brightness(.5)}
 .mdl>svg,.mdl>img{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;display:block}
 .lay{transition:filter 2.5s}
 body.night .lay{filter:brightness(.6) saturate(.85)}
-#sGlow{opacity:0;transition:opacity 2.5s}
-body.night #sGlow{opacity:1}
+#sGlow,#sGlow2{opacity:0;transition:opacity 2.5s}
+body.night #sGlow,body.night #sGlow2{opacity:1}
 .hit{pointer-events:all;cursor:pointer}
 
 #ui{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:3px;padding:5px 7px;border-radius:14px;z-index:10;
@@ -53,6 +53,11 @@ body.night #sGlow{opacity:1}
 #hint{position:fixed;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:10;padding:8px 16px;border-radius:999px;
   background:rgba(34,20,10,.66);color:#f4e7cc;font-size:14px;transition:opacity 1s;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
 #hint.hide{opacity:0;pointer-events:none}
+#snowfall{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;opacity:0;transition:opacity 3s}
+body.snowing #snowfall{opacity:1}
+.snowcap{opacity:0;transition:opacity 4s}
+body.snowing .snowcap{opacity:1}
+#temp{display:none}
 #ui .ttl{display:none}
 /* escriptori: rellotge gran a la dreta, comandaments a l'esquerra */
 @media (min-width:900px) and (min-aspect-ratio:1/1){
@@ -62,6 +67,7 @@ body.night #sGlow{opacity:1}
   #ui{left:44px;top:50%;bottom:auto;transform:translateY(-50%);flex-direction:column;align-items:stretch;width:224px;padding:16px 12px 12px;gap:4px;border-radius:16px}
   #hole:not(.open){box-shadow:inset 0 0 0 1px rgba(80,52,26,.1),0 1px 0 rgba(255,244,220,.22)}
   #ui .ttl{display:block;text-align:center;color:#f4dfa8;font-size:21px;letter-spacing:.3px;padding:2px 4px 12px;margin-bottom:6px;border-bottom:1px solid rgba(201,164,86,.45);text-shadow:0 1px 2px rgba(0,0,0,.6)}
+  #temp{display:block;font-size:13px;color:#e8d4a0;margin-top:5px;font-style:normal}
   #ui .ttl small{display:block;font-size:13px;color:#d9b766;font-style:italic;margin-top:3px}
   #ui button{font-size:16px;padding:10px 14px;justify-content:flex-start;gap:12px}
   #ui .lb{display:inline}
@@ -169,18 +175,22 @@ body.night #sGlow{opacity:1}
     <svg id="sBody"  class="lay" viewBox="0 96 600 1024" role="img" aria-label="Rellotge de cucut en forma de xalet alpí"></svg>
     <svg id="sFront" class="lay" viewBox="0 96 600 1024" aria-hidden="true"></svg>
     <svg id="sGlow"  viewBox="0 96 600 1024" aria-hidden="true"></svg>
+    <svg id="snow1" class="lay snowcap" viewBox="0 96 600 1024" aria-hidden="true"></svg>
   </div>
    <div class="mdl" id="m2" style="display:none">
     <svg id="sBack2" class="lay" viewBox="0 96 600 1024" aria-hidden="true"></svg>
     <svg id="sBody2" class="lay" viewBox="0 96 600 1024" aria-hidden="true"></svg>
     <svg id="sFront2" class="lay" viewBox="0 96 600 1024" aria-hidden="true"></svg>
+    <svg id="sGlow2" viewBox="0 96 600 1024" aria-hidden="true"></svg>
+    <svg id="snow2" class="lay snowcap" viewBox="0 96 600 1024" aria-hidden="true"></svg>
    </div>
   </div></div>
 </div>
 
+<canvas id="snowfall" aria-hidden="true"></canvas>
 <div id="hint">Toca la pantalla per activar el so</div>
 <div id="ui">
-  <div class="ttl">Rellotge de cucut<small id="mName">Xalet alpí</small></div>
+  <div class="ttl">Rellotge de cucut<small id="mName">Xalet alpí</small><span id="temp"></span></div>
   <button id="bSound" title="So: activa o silencia tots els sons" aria-label="So"><span class="ic" data-i="soundOff"></span><span class="lb">So</span></button>
   <button id="bTick" class="on" title="Tic-tac del pèndol" aria-label="Tic-tac"><span class="ic" data-i="pend"></span><span class="lb">Tic-tac</span></button>
   <button id="bCuckoo" title="Fes cantar el cucut ara" aria-label="Fes cantar el cucut"><span class="ic" data-i="bird"></span><span class="lb">Cucut</span></button>
@@ -1313,6 +1323,41 @@ const DK={};
     el('path',{d:'M-5.2,-12 q2,-3.5 5,-2 q3,-2 5.6,1.6 Z',fill:'#fffaf0'},m);}
 }
 
+/* --- llums de nit del segon model --- */
+const G2=$('sGlow2');
+const NG={};
+{
+  // finestres enceses amb les cortines a contrallum
+  for(const cx of [170,430]){
+    el('circle',{cx,cy:558,r:70,fill:'url(#gGlowWin)'},G2);
+    el('path',{d:`M${cx-19},582 V542 Q${cx},530 ${cx+19},542 V582 Z`,fill:'url(#gLit)'},G2);
+    el('path',{d:`M${cx-19},542 Q${cx},530 ${cx+19},542 L${cx+19},556 Q${cx+8},560 ${cx+6},582 H${cx-6} Q${cx-8},560 ${cx-19},556 Z`,fill:'#fff1d0',opacity:.55},G2);
+    el('path',{d:`M${cx-6},582 Q${cx},566 ${cx+6},582 Z`,fill:'#ffd28a'},G2);
+    for(let i=0;i<10;i++){const x=cx-24+i*5.4; el('circle',{cx:x,cy:583,r:3.2,fill:'#2a3a20',opacity:.85},G2);}
+  }
+  // claror del campanar
+  el('ellipse',{cx:300,cy:214,rx:26,ry:40,fill:'url(#gGlowWin)',opacity:.55},G2);
+  // llum que surt per la porteta del cucut quan s'obre
+  NG.door=el('g',{opacity:0},G2);
+  el('path',{d:'M276,330 h48 v70 h-48 Z M272,326 h56 v78 h-56 Z',fill:'url(#gGlowWin)','fill-rule':'evenodd'},NG.door);
+  el('ellipse',{cx:300,cy:420,rx:46,ry:16,fill:'url(#gGlowWin)',opacity:.7},NG.door);
+  // fanal penjat al pal del banc, amb flama que tremola
+  NG.lamp=el('g',{},G2);
+  NG.halo=el('circle',{cx:498,cy:688,r:62,fill:'url(#gGlowWin)'},NG.lamp);
+  el('ellipse',{cx:478,cy:742,rx:48,ry:6,fill:'url(#gGlowWin)',opacity:.6},NG.lamp);
+  el('path',{d:'M498,668 V674',stroke:'#2a1a0e','stroke-width':1.4},NG.lamp);
+  el('path',{d:'M492,676 H504 L502,694 H494 Z',fill:'#ffd98f',stroke:'#2a1a0e','stroke-width':1.2},NG.lamp);
+  el('path',{d:'M490,676 L498,671 L506,676 Z M492,694 H504 V697 H492 Z',fill:'#2a1a0e'},NG.lamp);
+  NG.flame=el('path',{d:'M498,692 Q494.6,686 498,680 Q501.4,686 498,692 Z',fill:'#fff3c4'},NG.lamp);
+  // cuques de llum vora els avets
+  NG.flies=[];
+  for(let i=0;i<9;i++){
+    const g=el('g',{},G2);
+    el('circle',{r:5,fill:'#e8ff9a',opacity:.25},g); el('circle',{r:1.7,fill:'#f6ffc8'},g);
+    NG.flies.push({g,x:i%2?62:546,y:600+((i*37)%120),ph:i*1.7,sp:.4+((i*13)%7)/14,r:30+((i*11)%25)});
+  }
+}
+
 /* --- cos fix del segon model → imatge --- */
 let bodyImg2=null, bodyW2=0, bodySrc2=null;
 function rasterBody2(){
@@ -1473,7 +1518,8 @@ async function wind(w){
 }
 
 // dia / nit segons la posta de sol (Barcelona)
-function sunTimes(date,lat=41.49,lon=2.13){
+let GEO={lat:41.4969,lon:2.1575};
+function sunTimes(date,lat=GEO.lat,lon=GEO.lon){
   const JD=date.getTime()/864e5+2440587.5;
   const n=Math.round(JD-2451545+.0008), Js=n-lon/360;
   const M=(357.5291+.98560028*Js)%360, Mr=M*D2R;
@@ -1577,6 +1623,20 @@ function frame2(ts,dt,now,min,hr,pa,p){
   const hop=S2.mt>=0?-3.5*amp*Math.abs(Math.sin(Math.PI*b)):0;
   set(tit,'transform',`translate(111 ${(694+hop).toFixed(2)}) scale(${(TT.turn*1.3).toFixed(3)} 1.3)`);
   set(TP.head,'transform',`rotate(${(28*TT.peck+(S2.mt>=0?8*amp*Math.sin(Math.PI*b):0)).toFixed(1)} 4 -12)`);
+  // llums de nit
+  if(document.body.classList.contains('night')){
+    set(NG.door,'opacity',(clamp(S.door,0,1)*.9).toFixed(2));
+    const fl=.82+.1*Math.sin(ts/97)+.08*Math.sin(ts/41+1.3);
+    set(NG.halo,'opacity',fl.toFixed(2));
+    set(NG.flame,'transform',`translate(498 692) scale(${(.9+.15*Math.sin(ts/63)).toFixed(2)} ${(.95+.2*Math.sin(ts/53+.7)).toFixed(2)}) translate(-498 -692)`);
+    const t=ts/1000;
+    for(const f of NG.flies){
+      const x=f.x+f.r*Math.sin(t*f.sp+f.ph)+8*Math.sin(t*1.7+f.ph), y=f.y+18*Math.sin(t*f.sp*.7+f.ph*2);
+      const bl=Math.max(0,Math.sin(t*1.3+f.ph*3));
+      set(f.g,'transform',`translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+      set(f.g,'opacity',(bl*bl).toFixed(2));
+    }
+  }
   // pinyes
   for(const w of W2){
     const d=Math.round(w.w.d*10)/10; if(d===w.drawn) continue; w.drawn=d;
@@ -1739,6 +1799,80 @@ function frame(ts){
 }
 {const n=new Date();if(n.getMinutes()%30===0&&n.getSeconds()<4)lastKey=n.getHours()+':'+n.getMinutes()}
 requestAnimationFrame(frame);
+
+/* =====================================================
+   NEU: si fa menys de 5 °C (Open-Meteo), neva sobre els dos rellotges
+   ===================================================== */
+{
+  // capes de neu acumulada (teulades, ampits, plataforma)
+  const lump=(g,x0,y0,x1,y1,th)=>{
+    const L=Math.hypot(x1-x0,y1-y0), nx=(y1-y0)/L, ny=-(x1-x0)/L;   // normal cap amunt
+    let top=`M${x0},${y0}`, n=Math.max(4,Math.round(L/14));
+    for(let i=1;i<=n;i++){const t=i/n, x=x0+(x1-x0)*t, y=y0+(y1-y0)*t, h=th*1.7*(.7+.5*Math.abs(Math.sin(i*1.9)));
+      const xm=x0+(x1-x0)*(t-.5/n), ym=y0+(y1-y0)*(t-.5/n);
+      top+=` Q${(xm+nx*h).toFixed(1)},${(ym+ny*h).toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)}`;}
+    const d=top+` L${x1-nx*2},${y1-ny*2} L${x0-nx*2},${y0-ny*2} Z`;
+    el('path',{d,fill:'#fbfdff',stroke:'#cfdbe6','stroke-width':.8},g);
+    el('path',{d:top,fill:'none',stroke:'#ffffff','stroke-width':1.2,opacity:.9},g);
+  };
+  const s1=el('g',{filter:'url(#bevelSm)'},$('snow1'));
+  const TH=Math.atan2(280,264), L=392;
+  for(const sg of [1,-1]){ lump(s1,300+sg*14,110+14*Math.tan(TH),300+sg*L*Math.cos(TH),110+L*Math.sin(TH),7); }
+  lump(s1,300-58,194,300+58,194,6);
+  for(const cx of [157,443]) lump(s1,cx-27,497,cx+27,497,5);
+  lump(s1,62,603,538,603,5);
+  lump(s1,40,771,560,771,5);
+  const s2=el('g',{filter:'url(#bevelSm)'},$('snow2'));
+  lump(s2,196,252,404,252,7);
+  for(const sg of [1,-1]){ const x0=300+sg*(300-172), x1=300+sg*(300+16); lump(s2,sg>0?x0:x1,sg>0?276:412,sg>0?x1:x0,sg>0?412:276,6); }
+  for(const [yb,w] of [[180,40],[154,28],[130,19]]) lump(s2,300-w-3,yb-2,300+w+3,yb-2,4);
+  for(const cx of [170,430]) lump(s2,cx-27,584,cx+27,584,4);
+  lump(s2,14,744,586,744,5);
+  for(const [x,yb,h] of [[62,744,190],[546,744,160]]) for(let k=0;k<5;k++){const w=(h*.36)*(1-k/5*.75), yb2=yb-14-k*(h-14)/5*.92; lump(s2,x-w+4,yb2-1,x+w-4,yb2-1,3);}
+
+  // nevada (canvas lleuger)
+  const cv=$('snowfall'), cx=cv.getContext('2d');
+  let W=0,H=0,flakes=[],snowing=false,raf=0,last=0;
+  const fit=()=>{const dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0)};
+  fit(); addEventListener('resize',fit);
+  const N=()=>Math.round(Math.min(220,W*H/9000));
+  const mk=(y)=>({x:Math.random()*W,y:y??Math.random()*H,r:.8+Math.random()*2.6,v:18+Math.random()*34,ph:Math.random()*6.3,sw:.4+Math.random()*1.2});
+  function loop(ts){
+    const dt=Math.min(.05,(ts-(last||ts))/1000); last=ts;
+    cx.clearRect(0,0,W,H);
+    while(flakes.length<N()) flakes.push(mk());
+    for(const f of flakes){
+      f.y+=f.v*dt*(.6+f.r*.25); f.x+=Math.sin(ts/1000*f.sw+f.ph)*12*dt+6*dt;
+      if(f.y>H+5){Object.assign(f,mk(-5))} if(f.x>W+5) f.x=-5;
+      cx.globalAlpha=.45+f.r*.18; cx.fillStyle='#fff';
+      cx.beginPath(); cx.arc(f.x,f.y,f.r,0,6.283); cx.fill(); if(f.r>1.4){cx.globalAlpha=.25;cx.strokeStyle='#8a7458';cx.lineWidth=.6;cx.stroke();}
+    }
+    raf=snowing?requestAnimationFrame(loop):0;
+    if(!snowing) cx.clearRect(0,0,W,H);
+  }
+  function setSnow(on){
+    if(on===snowing) return; snowing=on; document.body.classList.toggle('snowing',on);
+    if(on&&!raf){last=0;raf=requestAnimationFrame(loop)}
+  }
+  // temperatura actual
+  const forced=new URLSearchParams(location.search).get('neu');
+  const tempEl=$('temp');
+  async function checkTemp(){
+    try{
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${GEO.lat.toFixed(3)}&longitude=${GEO.lon.toFixed(3)}&current=temperature_2m&timezone=auto`);
+      const j=await r.json(); const t=j&&j.current&&j.current.temperature_2m;
+      if(typeof t==='number'){
+        tempEl.textContent=`${t.toFixed(1).replace('.',',')} °C${t<5?' · neva':''}`;
+        if(forced===null) setSnow(t<5);
+      }
+    }catch(e){}
+  }
+  if(forced==='1') setSnow(true);
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(p=>{GEO={lat:p.coords.latitude,lon:p.coords.longitude};applyLight();checkTemp()},()=>{},{timeout:8000,maximumAge:3600000});
+  }
+  checkTemp(); setInterval(checkTemp,15*60*1000);
+}
 
 /* =====================================================
    INTERFÍCIE
