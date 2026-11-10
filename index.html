@@ -21,11 +21,36 @@ body{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;-webk
   radial-gradient(140% 110% at 50% 45%, rgba(0,0,0,0) 30%, rgba(0,0,0,.72) 100%),
   var(--n1), #2e261e}
 body.night #wallNight{opacity:1}
-#scene{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#scene{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;perspective:1500px;perspective-origin:50% 45%}
 #seat{position:relative;height:min(94vh,163.8vw);width:min(55.08vh,96vw)}
 @supports (height:1dvh){#seat{height:min(94dvh,163.8vw);width:min(55.08dvh,96vw)}}
-#clock{position:absolute;inset:0;transform-origin:50% 42%}
-.mdl{position:absolute;inset:0}
+#seat{transform-style:preserve-3d}
+#sway{position:absolute;inset:0;transform-style:preserve-3d;transform-origin:50% 45%;will-change:transform}
+#clock{position:absolute;inset:0;transform-origin:50% 42%;transform-style:preserve-3d}
+.mdl{position:absolute;inset:0;transform-style:preserve-3d}
+.mdl>.lay.back{transform:translateZ(calc(var(--k) * -40px))}
+/* geometria 3D en unitats del dibuix (600×1024), escalada al rellotge */
+.geo{position:absolute;left:0;top:0;width:600px;height:1024px;transform-origin:0 0;transform:scale3d(var(--k),var(--k),var(--k));transform-style:preserve-3d;pointer-events:none}
+.fc{position:absolute;transform-origin:0 0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:filter 2.5s}
+.fc.both{backface-visibility:visible;-webkit-backface-visibility:visible}
+body.night .fc{filter:brightness(.5) saturate(.85)}
+.logs{background:repeating-linear-gradient(180deg,#2e1b0c 0,#7d5130 4px,#6a4425 13px,#4a2d17 22px,#24150a 26px)}
+.logs2{background:repeating-linear-gradient(180deg,#2e1708 0,#6a3f1d 1.5px,#5e381a 12px,#2e1708 13px)}
+.plank{background:repeating-linear-gradient(90deg,#6b4224 0,#7d5130 20px,#4a2c14 21px,#4a2c14 22px)}
+.tiles{background:repeating-linear-gradient(90deg,rgba(0,0,0,.35) 0,rgba(0,0,0,0) 3px,rgba(0,0,0,0) 17px,rgba(0,0,0,.35) 20px),repeating-linear-gradient(180deg,#c39261 0,#a87648 9px,#6e4626 13px)}
+.roof2{background:repeating-linear-gradient(90deg,#8a5428 0,#9a6232 5px,#5a3418 6.5px)}
+.grass{background:linear-gradient(180deg,#3d5a2e,#2f3d2c)}
+.shade-r::after,.shade-l::after,.shade-t::after,.shade-b::after{content:'';position:absolute;inset:0}
+.shade-r::after{background:linear-gradient(90deg,rgba(0,0,0,.35),rgba(0,0,0,.62))}
+.shade-l::after{background:linear-gradient(90deg,rgba(0,0,0,.22),rgba(255,210,160,.08))}
+.shade-t::after{background:linear-gradient(180deg,rgba(0,0,0,.42),rgba(255,220,170,.12))}
+.shade-b::after{background:linear-gradient(180deg,rgba(0,0,0,.75),rgba(0,0,0,.5))}
+.wshadow{position:absolute;pointer-events:none;opacity:.78;transition:opacity 2.5s}
+body.night .wshadow{opacity:.55}
+.glare{position:absolute;left:-6.667%;width:113.333%;top:-3.906%;height:103.906%;pointer-events:none;opacity:.55;
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  background:linear-gradient(115deg,rgba(255,240,215,0) 34%,rgba(255,240,215,.32) 46%,rgba(255,240,215,0) 58%) no-repeat;background-size:260% 100%;transition:opacity 2.5s}
+body.night .glare{opacity:.18}
 #hole,#panel{position:absolute;left:-9%;right:-9%;top:-1.5%;bottom:-.5%;border-radius:10px;pointer-events:none}
 #hole{transition:background .25s,box-shadow .25s}
 #hole.open{background:radial-gradient(ellipse at 50% 40%,#3a2614,#120904 75%);box-shadow:inset 0 0 50px rgba(0,0,0,.85),inset 0 0 0 1px rgba(80,52,26,.4)}
@@ -61,7 +86,7 @@ body.snowing .snowcap{opacity:1}
 #ui .ttl{display:none}
 /* escriptori: rellotge gran a la dreta, comandaments a l'esquerra */
 @media (min-width:900px) and (min-aspect-ratio:1/1){
-  #scene{padding-left:300px}
+  #scene{padding-left:300px;perspective-origin:calc(50% + 150px) 45%}
   #seat{height:97vh;width:56.84vh}
   @supports (height:1dvh){#seat{height:97dvh;width:56.84dvh}}
   #ui{left:44px;top:50%;bottom:auto;transform:translateY(-50%);flex-direction:column;align-items:stretch;width:224px;padding:16px 12px 12px;gap:4px;border-radius:16px}
@@ -169,22 +194,27 @@ body.snowing .snowcap{opacity:1}
 
 <div id="scene">
   <div id="seat"><div id="hole"></div>
+  <div id="sway">
   <div id="clock"><div id="panel"></div>
    <div class="mdl" id="m1">
-    <svg id="sBack"  class="lay" viewBox="0 96 600 1024" aria-hidden="true"></svg>
+    <svg id="sBack"  class="lay back" viewBox="0 96 600 1024" aria-hidden="true"></svg>
     <svg id="sBody"  class="lay" viewBox="0 96 600 1024" role="img" aria-label="Rellotge de cucut en forma de xalet alpí"></svg>
     <svg id="sFront" class="lay" viewBox="0 96 600 1024" aria-hidden="true"></svg>
     <svg id="sGlow"  viewBox="0 96 600 1024" aria-hidden="true"></svg>
     <svg id="snow1" class="lay snowcap" viewBox="0 96 600 1024" aria-hidden="true"></svg>
+    <div class="glare" id="glare1"></div>
+    <div class="geo" id="geo1"></div>
   </div>
    <div class="mdl" id="m2" style="display:none">
-    <svg id="sBack2" class="lay" viewBox="0 96 600 1024" aria-hidden="true"></svg>
+    <svg id="sBack2" class="lay back" viewBox="0 96 600 1024" aria-hidden="true"></svg>
     <svg id="sBody2" class="lay" viewBox="0 96 600 1024" aria-hidden="true"></svg>
     <svg id="sFront2" class="lay" viewBox="0 96 600 1024" aria-hidden="true"></svg>
     <svg id="sGlow2" viewBox="0 96 600 1024" aria-hidden="true"></svg>
     <svg id="snow2" class="lay snowcap" viewBox="0 96 600 1024" aria-hidden="true"></svg>
+    <div class="glare" id="glare2"></div>
+    <div class="geo" id="geo2"></div>
    </div>
-  </div></div>
+  </div></div></div>
 </div>
 
 <canvas id="snowfall" aria-hidden="true"></canvas>
@@ -222,14 +252,6 @@ const CX=300, CY=476; // centre de l'esfera
 /* =====================================================
    COS DEL RELLOTGE (estàtic, amb relleu)
    ===================================================== */
-{const sh=el('g',{},B);
-  // ombra llarga i difusa (el rellotge sobresurt de la paret)
-  el('polygon',{points:'300,70 590,400 505,420 505,812 95,812 95,420 10,400',fill:'#2a1608',opacity:.34,filter:'url(#soft14)',transform:'translate(30 44)'},sh);
-  el('rect',{x:50,y:588,width:500,height:92,fill:'#2a1608',opacity:.26,filter:'url(#soft14)',transform:'translate(32 46)'},sh);
-  el('path',{d:'M30,768 H570 V812 L540,845 H60 L30,812 Z',fill:'#2a1608',opacity:.36,filter:'url(#soft14)',transform:'translate(34 48)'},sh);
-  // ombra de contacte, curta i fosca
-  el('polygon',{points:'300,70 590,400 505,420 505,812 95,812 95,420 10,400',fill:'#1a0c04',opacity:.32,filter:'url(#soft8)',transform:'translate(10 14)'},sh);
-  el('path',{d:'M30,768 H570 V812 L540,845 H60 L30,812 Z',fill:'#1a0c04',opacity:.3,filter:'url(#soft8)',transform:'translate(10 14)'},sh);}
 /* --- cares laterals i superiors (volum dibuixat, vist una mica des de la dreta) --- */
 {
   const DX=18, DY=-11, V=el('g',{},B);
@@ -237,21 +259,7 @@ const CX=300, CY=476; // centre de l'esfera
   el('stop',{offset:'0','stop-color':'#3a2210'},g1); el('stop',{offset:'1','stop-color':'#1e1007'},g1);
   const g2=el('linearGradient',{id:'gTopF',x1:'0',y1:'1',x2:'0',y2:'0'},DEF);
   el('stop',{offset:'0','stop-color':'#b07a45'},g2); el('stop',{offset:'1','stop-color':'#7a4d28'},g2);
-  const side=(x,y0,y1,dx=DX,dy=DY,fill='url(#gSideR)')=>el('path',{d:`M${x},${y0} L${x+dx},${y0+dy} L${x+dx},${y1+dy} L${x},${y1} Z`,fill},V);
-  // costat dret de la casa, amb les juntes dels troncs
-  const hs=side(499,362,772);
-  for(let y=374;y<772;y+=26) el('path',{d:`M499,${y} L${499+DX},${y+DY}`,stroke:'#120904','stroke-width':1.4,opacity:.8},V);
-  for(let y=362;y<772;y+=26) el('path',{d:`M499,${y+4} L${499+DX},${y+4+DY}`,stroke:'#6b4424','stroke-width':1,opacity:.35},V);
-  // cara superior del sòcol (on trepitgen les figures)
-  el('path',{d:`M34,771 L${34+DX},${771+DY} L${566+DX},${771+DY} L566,771 Z`,fill:'url(#gTopF)'},V);
-  for(let x=60;x<560;x+=26) el('path',{d:`M${x},771 L${x+DX},${771+DY}`,stroke:'#5a3719','stroke-width':.6,opacity:.4},V);
-  // costat dret del sòcol i del balcó
-  side(566,771,809,DX,DY,'#2a170a');
-  el('path',{d:`M566,780 L${566+DX},${780+DY} M566,800 L${566+DX},${800+DY}`,stroke:'#120904','stroke-width':1},V);
-  side(544,662,676,DX*.7,DY*.7,'#2a170a');
-  side(538,596,662,DX*.7,DY*.7,'#3a2311');
-  for(let y=612;y<656;y+=11) el('path',{d:`M538,${y} L${538+DX*.7},${y+DY*.7}`,stroke:'#1a0c04','stroke-width':.8,opacity:.6},V);
-}
+  }
 
 /* --- frontó (gable) amb taulons verticals i pintura tirolesa --- */
 {
@@ -951,7 +959,7 @@ function rasterBody(){
   const src=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${Math.round(W*680/600)}" height="${Math.round(W*1064/600)}" viewBox="-40 56 680 1064" preserveAspectRatio="none">${bodySrcBody}</svg>`;
   const url=URL.createObjectURL(new Blob([src],{type:'image/svg+xml'}));
   const img=new Image(); img.className='lay'; img.style.left='-6.667%'; img.style.width='113.333%'; img.style.top='-3.906%'; img.style.height='103.906%'; img.alt='Rellotge de cucut en forma de xalet alpí';
-  img.onload=()=>{ (bodyImg||B).replaceWith(img); bodyImg=img; bodyW=W; setTimeout(()=>URL.revokeObjectURL(url),2000); };
+  img.onload=()=>{ (bodyImg||B).replaceWith(img); bodyImg=img; bodyW=W; setGlare(1,url); };
   img.onerror=()=>URL.revokeObjectURL(url);
   img.src=url;
 }
@@ -973,13 +981,6 @@ const S2={bell:0,mt:-1,musicAt:0};
   el('stop',{offset:'0','stop-color':'#2d4a26'},gP); el('stop',{offset:'.45','stop-color':'#4c6e36'},gP); el('stop',{offset:'1','stop-color':'#1e3319'},gP);
   const gR=el('linearGradient',{id:'gRoof2',x1:'0',y1:'0',x2:'0',y2:'1'},DEF);
   el('stop',{offset:'0','stop-color':'#9a6232'},gR); el('stop',{offset:'1','stop-color':'#6b3f1c'},gR);
-}
-/* --- ombres a la paret --- */
-{
-  const sh=el('g',{},B2);
-  const sil='300,92 330,180 400,250 470,300 600,430 590,470 545,470 520,742 590,752 560,800 470,840 130,840 40,800 10,752 80,742 55,470 10,470 0,430 130,300 200,250 270,180';
-  el('polygon',{points:sil,fill:'#2a1608',opacity:.34,filter:'url(#soft14)',transform:'translate(30 44)'},sh);
-  el('polygon',{points:sil,fill:'#1a0c04',opacity:.3,filter:'url(#soft8)',transform:'translate(10 14)'},sh);
 }
 /* --- campanar --- */
 {
@@ -1112,10 +1113,7 @@ const S2={bell:0,mt:-1,musicAt:0};
       if(i%2) el('circle',{cx:x+1,cy:y-2,r:1.9,fill:rnd()>.5?'#d23a2d':'#f1c232'},gg);}
   };
   win(170); win(430);
-  // costat dret (volum)
-  const V=el('g',{},g);
-  el('path',{d:'M472,470 L490,459 L490,733 L472,744 Z',fill:'url(#gSideR)'},V);
-  for(let y=483;y<744;y+=13) el('path',{d:`M472,${y} L490,${y-11}`,stroke:'#120904','stroke-width':1,opacity:.7},V);
+
 }
 /* --- esfera tallada amb roseta crema --- */
 {
@@ -1160,8 +1158,6 @@ function pine(g,x,yb,h){
   const g=el('g',{},B2);
   // plataforma: cara de dalt, costat i sòcol amb gelosia
   const DX=18, DY=-11;
-  el('path',{d:`M14,744 L${14+DX},${744+DY} L${586+DX},${744+DY} L586,744 Z`,fill:'url(#gTopF)'},g);
-  el('path',{d:`M586,744 L${586+DX},${744+DY} L${586+DX},${756+DY} L586,756 Z`,fill:'#1e2a1c'},g);
   const pl=el('g',{filter:'url(#bevel)'},g);
   el('rect',{x:14,y:744,width:572,height:12,rx:2,fill:'#2f3d2c'},pl);
   el('rect',{x:14,y:744,width:572,height:2,fill:'#6f8a5a',opacity:.6},pl);
@@ -1371,7 +1367,7 @@ function rasterBody2(){
   const src=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${Math.round(W*680/600)}" height="${Math.round(W*1064/600)}" viewBox="-40 56 680 1064" preserveAspectRatio="none">${bodySrc2}</svg>`;
   const url=URL.createObjectURL(new Blob([src],{type:'image/svg+xml'}));
   const img=new Image(); img.className='lay'; img.style.left='-6.667%'; img.style.width='113.333%'; img.style.top='-3.906%'; img.style.height='103.906%'; img.alt='Rellotge de cucut amb campanar i molí';
-  img.onload=()=>{ (bodyImg2||B2).replaceWith(img); bodyImg2=img; bodyW2=W; setTimeout(()=>URL.revokeObjectURL(url),2000); };
+  img.onload=()=>{ (bodyImg2||B2).replaceWith(img); bodyImg2=img; bodyW2=W; setGlare(2,url); };
   img.onerror=()=>URL.revokeObjectURL(url);
   img.src=url;
 }
@@ -1665,6 +1661,7 @@ async function flipModel(){
 }
 try{ if(localStorage.getItem('cucut.model')==='2') setModel(2) }catch(e){}
 function frame(ts){
+  updateTilt(ts);
   const dt=Math.min(.1,(ts-lastTS)/1000); lastTS=ts;
   for(let i=tweens.length-1;i>=0;i--){const w=tweens[i],p=Math.min(1,(ts-w.t0)/w.ms);w.o[w.k]=w.from+(w.to-w.from)*w.ease(p);if(p>=1){w.res();tweens.splice(i,1)}}
   const now=new Date(), sec=now.getSeconds()+now.getMilliseconds()/1000, min=now.getMinutes()+sec/60, hr=(now.getHours()%12)+min/60;
@@ -1785,7 +1782,7 @@ function frame(ts){
   drops.forEach((d,i)=>{const q=((ts/380)+i/4)%1; set(d,'cx',(529.5+(i%2?6:-4)*q).toFixed(1)); set(d,'cy',(711-6*q+14*q*q).toFixed(1)); set(d,'opacity',(amp*.9*(1-q)).toFixed(2));});
   if(amp>0.01){set(water,'stroke-dashoffset',(-ts/25%12).toFixed(1)); set(water2,'stroke-dashoffset',(-ts/18%12).toFixed(1))}
 
-  if(flipping) clockEl.style.transform=`perspective(1700px) rotateY(${FL.a.toFixed(2)}deg)`;
+  if(flipping) clockEl.style.transform=`rotateY(${FL.a.toFixed(2)}deg)`;
   // hores i mitges
   if(ts-lastTf>250){
     lastTf=ts;
@@ -1875,6 +1872,99 @@ requestAnimationFrame(frame);
 }
 
 /* =====================================================
+   3D REAL I EFECTES (tècnica del rellotge de pèndol):
+   cares laterals CSS en profunditat, ombra a la paret en un pla de darrere,
+   lluentor que llisca per la fusta i inclinació amb ratolí, mòbil o balanceig suau
+   ===================================================== */
+const OY=96;
+function face(geo,cls,l,t,w,h,orig,tf){
+  const d=document.createElement('div'); d.className='fc '+cls;
+  Object.assign(d.style,{left:l+'px',top:(t-OY)+'px',width:w+'px',height:h+'px',transformOrigin:orig,transform:tf});
+  geo.appendChild(d); return d;
+}
+const sideR=(g,x,y0,y1,D,c)=>face(g,c+' shade-r',x,y0,D,y1-y0,'0 0','rotateY(90deg)');
+const sideL=(g,x,y0,y1,D,c)=>face(g,c+' shade-l',x-D,y0,D,y1-y0,'100% 0','rotateY(-90deg)');
+const topF=(g,x0,x1,y,D,c)=>face(g,c+' shade-t',x0,y-D,x1-x0,D,'0 100%','rotateX(90deg)');
+const botF=(g,x0,x1,y,D,c)=>face(g,c+' shade-b',x0,y,x1-x0,D,'0 0','rotateX(-90deg)');
+const slope=(g,x,y,len,ang,D,c)=>face(g,c+' both shade-t',x,y,len,D,'0 0',`rotateZ(${ang}deg) rotateX(-90deg)`);
+function wallShadow(geo,paths,D){
+  const sc=.5, W=760, H=1160, X0=-80, Y0=OY-60;
+  const cv=document.createElement('canvas'); cv.className='wshadow';
+  cv.width=W*sc; cv.height=H*sc;
+  Object.assign(cv.style,{left:X0+'px',top:(Y0-OY)+'px',width:W+'px',height:H+'px',transform:`translateZ(${-D}px)`});
+  const c=cv.getContext('2d');
+  c.shadowColor='rgba(28,14,4,.85)'; c.shadowBlur=22*sc; c.shadowOffsetX=5000;
+  c.fillStyle='#000';
+  c.setTransform(sc,0,0,sc,(-X0+16)*sc-5000,(-Y0+24)*sc);
+  for(const d of paths) c.fill(new Path2D(d));
+  geo.appendChild(cv);
+}
+{
+  // --- model 1: xalet alpí ---
+  const g=$('geo1'), D=104, TH=Math.atan2(280,264)/D2R;
+  wallShadow(g,['M300,70 L590,400 L505,420 L505,812 L95,812 L95,420 L10,400 Z','M30,768 H570 V812 L540,845 H60 L30,812 Z','M50,588 H550 V680 H50 Z'],D+12);
+  sideL(g,101,362,772,D,'logs'); sideR(g,499,362,772,D,'logs');
+  sideL(g,34,771,809,D+14,'plank'); sideR(g,566,771,809,D+14,'plank');
+  topF(g,34,566,771,D+14,'plank'); botF(g,34,566,809,D+14,'plank');
+  sideL(g,56,596,676,D-10,'plank'); sideR(g,544,596,676,D-10,'plank');
+  topF(g,62,538,603,D-10,'plank'); botF(g,56,544,676,D-10,'plank');
+  slope(g,300,108,392,TH,D+10,'tiles'); slope(g,300,108,392,180-TH,D+10,'tiles');
+}
+{
+  // --- model 2: la cerveseria del molí ---
+  const g=$('geo2'), D=100;
+  wallShadow(g,['M300,92 L330,180 L400,250 L470,300 L600,430 L590,470 L545,470 L520,742 L590,752 L560,800 L470,840 L130,840 L40,800 L10,752 L80,742 L55,470 L10,470 L0,430 L130,300 L200,250 L270,180 Z'],D+12);
+  sideL(g,128,470,744,D,'logs2'); sideR(g,472,470,744,D,'logs2');
+  sideL(g,186,300,470,D-8,'logs2'); sideR(g,414,300,470,D-8,'logs2');
+  sideL(g,14,744,756,D+20,'grass'); sideR(g,586,744,756,D+20,'grass');
+  topF(g,14,586,744,D+20,'grass');
+  sideL(g,30,756,800,D+10,'plank'); sideR(g,570,756,800,D+10,'plank');
+  botF(g,134,466,838,D+10,'plank');
+  sideL(g,280,176,250,34,'plank'); sideR(g,320,176,250,34,'plank');
+  topF(g,192,408,247,D+6,'roof2');
+  slope(g,175.6,273.4,236,144,D+6,'roof2');
+  slope(g,424.4,273.4,236,36,D+6,'roof2');
+}
+const glareEl={1:$('glare1'),2:$('glare2')}, glareUrl={};
+function setGlare(m,url){
+  if(glareUrl[m]&&glareUrl[m]!==url) URL.revokeObjectURL(glareUrl[m]);
+  glareUrl[m]=url; const e=glareEl[m];
+  e.style.webkitMaskImage=e.style.maskImage=`url("${url}")`;
+}
+// escala de la geometria
+const seatEl=$('seat'), swayEl=$('sway');
+function setK(){ seatEl.style.setProperty('--k',(seatEl.clientWidth/600).toFixed(5)); }
+setK(); addEventListener('resize',setK);
+// inclinació
+const TL={x:-3,y:0,tx:-3,ty:0,last:-1e9,orient:null,base:null};
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+addEventListener('pointermove',e=>{
+  if(e.pointerType==='touch') return;
+  const nx=e.clientX/innerWidth-.5, ny=e.clientY/innerHeight-.5;
+  TL.ty=-nx*34; TL.tx=ny*16-3; TL.last=performance.now();
+},{passive:true});
+addEventListener('deviceorientation',e=>{
+  if(e.beta==null||e.gamma==null) return;
+  if(TL.base===null) TL.base=e.beta;
+  TL.base+=(e.beta-TL.base)*.004;
+  TL.orient={y:clamp(e.gamma/28,-1,1)*20, x:clamp((e.beta-TL.base)/25,-1,1)*10-3};
+},{passive:true});
+let tPrev=0; const dtT=ts=>{const d=tPrev?Math.min(.1,(ts-tPrev)/1000):.016; tPrev=ts; return d};
+function updateTilt(ts){
+  if(flipping) return;
+  let gx,gy;
+  if(performance.now()-TL.last<4000){gx=TL.tx;gy=TL.ty}
+  else if(TL.orient){gx=TL.orient.x;gy=TL.orient.y}
+  else if(reduceMotion){gx=-2;gy=0}
+  else{const t=ts/1000; gy=11*Math.sin(TAU*t/60); gx=-4-2*Math.sin(TAU*t/90);}
+  const kk=1-Math.pow(.94,Math.max(1,dtT(ts)*60)); TL.x+=(gx-TL.x)*kk; TL.y+=(gy-TL.y)*kk;
+  const tf=`rotateX(${TL.x.toFixed(2)}deg) rotateY(${TL.y.toFixed(2)}deg)`;
+  if(swayEl._t!==tf){swayEl._t=tf; swayEl.style.transform=tf;
+    const pos=(50+TL.y*3.2).toFixed(1)+'% 0';
+    glareEl[1].style.backgroundPosition=glareEl[2].style.backgroundPosition=pos;}
+}
+
+/* =====================================================
    INTERFÍCIE
    ===================================================== */
 const ICON={
@@ -1899,6 +1989,7 @@ function setSound(on){
 }
 addEventListener('pointerdown',e=>{
   if(!firstGesture) return; firstGesture=false;
+  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function') DeviceOrientationEvent.requestPermission().catch(()=>{});
   if(!e.target.closest('#bSound')) setSound(true);
   hint.textContent='Toca dos cops el rellotge per canviar de model';
   setTimeout(()=>hint.classList.add('hide'),6000);
