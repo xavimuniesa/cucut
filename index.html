@@ -24,7 +24,9 @@ body.night #wallNight{opacity:1}
 #scene{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;perspective:1500px;perspective-origin:50% 45%}
 #seat{position:relative;height:min(94vh,163.8vw);width:min(55.08vh,96vw)}
 @supports (height:1dvh){#seat{height:min(94dvh,163.8vw);width:min(55.08dvh,96vw)}}
-#seat{transform-style:preserve-3d}
+#seat{transform-style:preserve-3d;pointer-events:none}
+#sway,#clock,.mdl{pointer-events:none}
+.mdl>img.lay{pointer-events:auto}
 #sway{position:absolute;inset:0;transform-style:preserve-3d;transform-origin:50% 45%;will-change:transform}
 #clock{position:absolute;inset:0;transform-origin:50% 42%;transform-style:preserve-3d}
 .mdl{position:absolute;inset:0;transform-style:preserve-3d}
@@ -601,7 +603,7 @@ const weights=WX.map((x,i)=>{
   const loose=[mk(lx,4.4,'3.8 8.2','#c9a456','round'),mk(lx,1.5,'2.4 9.6','#3c2a0e','round'),mk(lx,1.4,'7 5','#e3c47a','butt')];
   const ring=el('circle',{cx:x+lx,cy:900,r:5.5,fill:'none',stroke:'url(#gBrass)','stroke-width':2.4},g);
   const cone=el('use',{href:'#wCone'},g);
-  const hit=el('rect',{x:x-20,y:810,width:44,height:400,fill:'transparent',class:'hit'},g);
+  const hit=el('rect',{x:x-24,y:810,width:52,height:400,fill:'transparent',class:'hit'},$('sFront'));
   return {x,g,sc,chain,loose,ring,cone,hit,d:0,drawn:-1};
 });
 
@@ -1212,7 +1214,7 @@ const W2=[220,380].map((x,i)=>{
   const ch2=el('line',{x1:x,y1:820,x2:x,y2:900,stroke:'#e3c47a','stroke-width':1.3,'stroke-dasharray':'7 5'},g);
   const lo=el('line',{x1:x+15,y1:820,x2:x+15,y2:900,stroke:'#c9a456','stroke-width':4.2,'stroke-dasharray':'3.8 8.2','stroke-linecap':'round'},g);
   const cone=el('use',{href:'#wCone'},g);
-  const hit=el('rect',{x:x-20,y:830,width:44,height:290,fill:'transparent',class:'hit'},g);
+  const hit=el('rect',{x:x-24,y:830,width:52,height:290,fill:'transparent',class:'hit'},$('sFront2'));
   return {x,ch,ch2,lo,cone,hit,w:weights[i],drawn:-1};
 });
 
