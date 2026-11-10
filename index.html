@@ -21,16 +21,24 @@ body{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;-webk
   radial-gradient(140% 110% at 50% 45%, rgba(0,0,0,0) 30%, rgba(0,0,0,.72) 100%),
   var(--n1), #2e261e}
 body.night #wallNight{opacity:1}
-#scene{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;perspective:1500px;perspective-origin:50% 45%}
+#scene{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;}
 #seat{position:relative;height:min(94vh,163.8vw);width:min(55.08vh,96vw)}
 @supports (height:1dvh){#seat{height:min(94dvh,163.8vw);width:min(55.08dvh,96vw)}}
-#seat{transform-style:preserve-3d;pointer-events:none}
+#seat{pointer-events:none}
 #sway,#clock,.mdl{pointer-events:none}
 .mdl>img.lay{pointer-events:auto}
-#sway{position:absolute;inset:0;transform-style:preserve-3d;transform-origin:50% 45%;will-change:transform}
-#clock{position:absolute;inset:0;transform-origin:50% 42%;transform-style:preserve-3d}
-.mdl{position:absolute;inset:0;transform-style:preserve-3d}
-.mdl>.lay.back{transform:translateZ(calc(var(--k) * -40px))}
+#sway{position:absolute;inset:0;transform-origin:50% 45%;will-change:transform}
+#clock{position:absolute;inset:0;transform-origin:50% 42%}
+.mdl{position:absolute;inset:0}
+.thick{position:absolute;left:-6.667%;width:113.333%;top:-3.906%;height:103.906%;pointer-events:none;filter:brightness(.28) saturate(.6);will-change:transform}
+.wsh{position:absolute;left:-6.667%;width:113.333%;top:-3.906%;height:103.906%;pointer-events:none;filter:brightness(0) blur(7px);opacity:.38;will-change:transform;transition:opacity 2.5s}
+body.night .wsh{opacity:.5}
+body:not(.d3) .geo{display:none}
+body.d3 #scene{perspective:1500px;perspective-origin:50% 45%}
+body.d3 #seat,body.d3 #sway,body.d3 #clock,body.d3 .mdl{transform-style:preserve-3d}
+body.d3 .mdl>.lay.back{transform:translateZ(calc(var(--k) * -40px))}
+body.d3 .thick,body.d3 .wsh{display:none}
+@media (min-width:900px) and (min-aspect-ratio:1/1){body.d3 #scene{perspective-origin:calc(50% + 150px) 45%}}
 /* geometria 3D en unitats del dibuix (600×1024), escalada al rellotge */
 .geo{position:absolute;left:0;top:0;width:600px;height:1024px;transform-origin:0 0;transform:scale3d(var(--k),var(--k),var(--k));transform-style:preserve-3d;pointer-events:none}
 .fc{position:absolute;transform-origin:0 0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:filter 2.5s}
@@ -88,7 +96,7 @@ body.snowing .snowcap{opacity:1}
 #ui .ttl{display:none}
 /* escriptori: rellotge gran a la dreta, comandaments a l'esquerra */
 @media (min-width:900px) and (min-aspect-ratio:1/1){
-  #scene{padding-left:300px;perspective-origin:calc(50% + 150px) 45%}
+  #scene{padding-left:300px}
   #seat{height:97vh;width:56.84vh}
   @supports (height:1dvh){#seat{height:97dvh;width:56.84dvh}}
   #ui{left:44px;top:50%;bottom:auto;transform:translateY(-50%);flex-direction:column;align-items:stretch;width:224px;padding:16px 12px 12px;gap:4px;border-radius:16px}
@@ -233,6 +241,8 @@ body.snowing .snowcap{opacity:1}
 
 <script>
 (()=>{
+const D3=matchMedia('(hover:hover) and (pointer:fine)').matches && !/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && !(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+if(D3) document.body.classList.add('d3');
 'use strict';
 const NS='http://www.w3.org/2000/svg';
 const $=id=>document.getElementById(id);
@@ -1647,6 +1657,7 @@ function frame2(ts,dt,now,min,hr,pa,p){
 let wheel2A=0;
 function setModel(m){
   MODEL=m; m1El.style.display=m===1?'':'none'; m2El.style.display=m===2?'':'none';
+  for(const k of [1,2]) if(wshEl[k]) wshEl[k].style.display=k===m?'':'none';
   $('mName').textContent=m===1?'Xalet alpí':'La cerveseria del molí';
   try{localStorage.setItem('cucut.model',String(m))}catch(e){}
 }
@@ -1901,7 +1912,7 @@ function wallShadow(geo,paths,D){
   for(const d of paths) c.fill(new Path2D(d));
   geo.appendChild(cv);
 }
-{
+if(D3){
   // --- model 1: xalet alpí ---
   const g=$('geo1'), D=104, TH=Math.atan2(280,264)/D2R;
   wallShadow(g,['M300,70 L590,400 L505,420 L505,812 L95,812 L95,420 L10,400 Z','M30,768 H570 V812 L540,845 H60 L30,812 Z','M50,588 H550 V680 H50 Z'],D+12);
@@ -1912,7 +1923,7 @@ function wallShadow(geo,paths,D){
   topF(g,62,538,603,D-10,'plank'); botF(g,56,544,676,D-10,'plank');
   slope(g,300,108,392,TH,D+10,'tiles'); slope(g,300,108,392,180-TH,D+10,'tiles');
 }
-{
+if(D3){
   // --- model 2: la cerveseria del molí ---
   const g=$('geo2'), D=100;
   wallShadow(g,['M300,92 L330,180 L400,250 L470,300 L600,430 L590,470 L545,470 L520,742 L590,752 L560,800 L470,840 L130,840 L40,800 L10,752 L80,742 L55,470 L10,470 L0,430 L130,300 L200,250 L270,180 Z'],D+12);
@@ -1928,7 +1939,13 @@ function wallShadow(geo,paths,D){
   slope(g,424.4,273.4,236,36,D+6,'roof2');
 }
 const glareEl={1:$('glare1'),2:$('glare2')}, glareUrl={};
+const thickEl={}, wshEl={};
 function setGlare(m,url){
+  const body=m===1?bodyImg:bodyImg2;
+  if(!thickEl[m]){thickEl[m]=new Image(); thickEl[m].className='thick'; thickEl[m].alt='';}
+  if(!wshEl[m]){wshEl[m]=new Image(); wshEl[m].className='wsh'; wshEl[m].alt=''; $('seat').insertBefore(wshEl[m],$('sway')); wshEl[m].style.display=m===MODEL?'':'none';}
+  thickEl[m].src=wshEl[m].src=url;
+  if(body&&thickEl[m].nextSibling!==body) body.parentNode.insertBefore(thickEl[m],body);
   if(glareUrl[m]&&glareUrl[m]!==url) URL.revokeObjectURL(glareUrl[m]);
   glareUrl[m]=url; const e=glareEl[m];
   e.style.webkitMaskImage=e.style.maskImage=`url("${url}")`;
@@ -1948,8 +1965,10 @@ addEventListener('pointermove',e=>{
 addEventListener('deviceorientation',e=>{
   if(e.beta==null||e.gamma==null) return;
   if(TL.base===null) TL.base=e.beta;
-  TL.base+=(e.beta-TL.base)*.004;
-  TL.orient={y:clamp(e.gamma/28,-1,1)*20, x:clamp((e.beta-TL.base)/25,-1,1)*10-3};
+  TL.base+=(e.beta-TL.base)*.003;
+  const land=Math.abs((screen.orientation&&screen.orientation.angle)||window.orientation||0)===90;
+  const gm=land?(e.beta-TL.base):e.gamma, bt=land?-(e.gamma-0):(e.beta-TL.base);
+  TL.orient={y:clamp(gm/14,-1,1)*26, x:clamp((land?0:bt)/16,-1,1)*14-3};
 },{passive:true});
 let tPrev=0; const dtT=ts=>{const d=tPrev?Math.min(.1,(ts-tPrev)/1000):.016; tPrev=ts; return d};
 function updateTilt(ts){
@@ -1959,9 +1978,17 @@ function updateTilt(ts){
   else if(TL.orient){gx=TL.orient.x;gy=TL.orient.y}
   else if(reduceMotion){gx=-2;gy=0}
   else{const t=ts/1000; gy=11*Math.sin(TAU*t/60); gx=-4-2*Math.sin(TAU*t/90);}
-  const kk=1-Math.pow(.94,Math.max(1,dtT(ts)*60)); TL.x+=(gx-TL.x)*kk; TL.y+=(gy-TL.y)*kk;
+  const kk=1-Math.pow(TL.orient?.85:.94,Math.max(1,dtT(ts)*60)); TL.x+=(gx-TL.x)*kk; TL.y+=(gy-TL.y)*kk;
   const tf=`rotateX(${TL.x.toFixed(2)}deg) rotateY(${TL.y.toFixed(2)}deg)`;
-  if(swayEl._t!==tf){swayEl._t=tf; swayEl.style.transform=tf;
+  if(swayEl._t!==tf){swayEl._t=tf; swayEl.style.transform=D3?tf:'perspective(1100px) '+tf;
+    if(!D3){
+    const W=seatEl.clientWidth, d=W*.075;                 // gruix aparent del rellotge
+    const sx=-Math.sin(TL.y*D2R)*d, sy=Math.sin(TL.x*D2R)*d;
+    const th=`translate(${(-sx*.9).toFixed(1)}px,${(-sy*.9).toFixed(1)}px)`;
+    for(const k of [1,2]) if(thickEl[k]) thickEl[k].style.transform=th;
+    const ws=`translate(${(W*.03-sx*1.6).toFixed(1)}px,${(W*.045-sy*1.6).toFixed(1)}px)`;
+    for(const k of [1,2]) if(wshEl[k]) wshEl[k].style.transform=ws;
+    }
     const pos=(50+TL.y*3.2).toFixed(1)+'% 0';
     glareEl[1].style.backgroundPosition=glareEl[2].style.backgroundPosition=pos;}
 }
@@ -1991,11 +2018,15 @@ function setSound(on){
 }
 addEventListener('pointerdown',e=>{
   if(!firstGesture) return; firstGesture=false;
-  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function') DeviceOrientationEvent.requestPermission().catch(()=>{});
   if(!e.target.closest('#bSound')) setSound(true);
   hint.textContent='Toca dos cops el rellotge per canviar de model';
   setTimeout(()=>hint.classList.add('hide'),6000);
 },{capture:true});
+let motionAsked=false;
+const askMotion=()=>{ if(motionAsked) return; motionAsked=true;
+  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function')
+    DeviceOrientationEvent.requestPermission().catch(()=>{motionAsked=false;}); };
+addEventListener('touchend',askMotion,{passive:true}); addEventListener('click',askMotion);
 bSound.onclick=()=>setSound(!A.on);
 bTick.onclick=()=>{A.tick=!A.tick;bTick.classList.toggle('on',A.tick);if(A.tickBus)A.tickBus.gain.value=A.tick?.55:0};
 const demo=()=>{const h=new Date().getHours()%12||12;show(h,true)};
