@@ -261,6 +261,15 @@ document.documentElement.style.setProperty('--n2',svgUrl(n2));
 const DEF=$('defs0'), K=$('sBack'), B=$('sBody'), F=$('sFront'), G=$('sGlow');
 const CX=300, CY=476; // centre de l'esfera
 
+
+const paintSides=(V,DX,DY,list)=>{
+  const side=(x,y0,y1,fill)=>el('path',{d:`M${x},${y0} L${x+DX},${y0+DY} L${x+DX},${y1+DY} L${x},${y1} Z`,fill},V);
+  for(const it of list){
+    if(it.t==='side'){ side(it.x,it.y0,it.y1,it.fill||'url(#gSideR)');
+      if(it.step) for(let y=it.y0+it.step;y<it.y1;y+=it.step) el('path',{d:`M${it.x},${y} L${it.x+DX},${y+DY}`,stroke:'#120904','stroke-width':1.2,opacity:.75},V); }
+    else if(it.t==='top'){ el('path',{d:`M${it.x0},${it.y} L${it.x0+DX},${it.y+DY} L${it.x1+DX},${it.y+DY} L${it.x1},${it.y} Z`,fill:it.fill||'url(#gTopF)'},V); }
+  }
+};
 /* =====================================================
    COS DEL RELLOTGE (estàtic, amb relleu)
    ===================================================== */
@@ -271,6 +280,9 @@ const CX=300, CY=476; // centre de l'esfera
   el('stop',{offset:'0','stop-color':'#3a2210'},g1); el('stop',{offset:'1','stop-color':'#1e1007'},g1);
   const g2=el('linearGradient',{id:'gTopF',x1:'0',y1:'1',x2:'0',y2:'0'},DEF);
   el('stop',{offset:'0','stop-color':'#b07a45'},g2); el('stop',{offset:'1','stop-color':'#7a4d28'},g2);
+  const g3=el('linearGradient',{id:'gSideL',x1:'1',y1:'0',x2:'0',y2:'0'},DEF);
+  el('stop',{offset:'0','stop-color':'#5a3a1e'},g3); el('stop',{offset:'1','stop-color':'#3a2311'},g3);
+  if(!D3) paintSides(V,-14,-5,[{t:'side',x:101,y0:362,y1:772,step:26,fill:'url(#gSideL)'},{t:'side',x:62,y0:596,y1:676,fill:'#5a3a1e'},{t:'side',x:34,y0:771,y1:809,fill:'#4a2c14'},{t:'top',x0:34,x1:566,y:771}]);
   }
 
 /* --- frontó (gable) amb taulons verticals i pintura tirolesa --- */
@@ -994,6 +1006,8 @@ const S2={bell:0,mt:-1,musicAt:0};
   const gR=el('linearGradient',{id:'gRoof2',x1:'0',y1:'0',x2:'0',y2:'1'},DEF);
   el('stop',{offset:'0','stop-color':'#9a6232'},gR); el('stop',{offset:'1','stop-color':'#6b3f1c'},gR);
 }
+/* --- laterals pintats (mòbil) --- */
+if(!D3) paintSides(el('g',{},B2),-14,-5,[{t:'side',x:186,y0:300,y1:470,step:13,fill:'url(#gSideL)'},{t:'side',x:128,y0:470,y1:744,step:13,fill:'url(#gSideL)'},{t:'side',x:14,y0:744,y1:756,fill:'#2f3d2c'},{t:'top',x0:14,x1:586,y:744,fill:'#4d6b3a'},{t:'side',x:280,y0:176,y1:250,fill:'#4a2a12'}]);
 /* --- campanar --- */
 {
   const g=el('g',{filter:'url(#bevel)'},B2);
@@ -1955,12 +1969,13 @@ const seatEl=$('seat'), swayEl=$('sway');
 function setK(){ seatEl.style.setProperty('--k',(seatEl.clientWidth/600).toFixed(5)); }
 setK(); addEventListener('resize',setK);
 // inclinació
-const TL={x:-3,y:0,tx:-3,ty:0,last:-1e9,orient:null,base:null};
+const BY=10, BX=-3;
+const TL={x:BX,y:BY,tx:BX,ty:BY,last:-1e9,orient:null,base:null};
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 addEventListener('pointermove',e=>{
   if(e.pointerType==='touch') return;
   const nx=e.clientX/innerWidth-.5, ny=e.clientY/innerHeight-.5;
-  TL.ty=-nx*34; TL.tx=ny*16-3; TL.last=performance.now();
+  TL.ty=BY-nx*10; TL.tx=BX+ny*5; TL.last=performance.now();
 },{passive:true});
 addEventListener('deviceorientation',e=>{
   if(e.beta==null||e.gamma==null) return;
@@ -1968,7 +1983,7 @@ addEventListener('deviceorientation',e=>{
   TL.base+=(e.beta-TL.base)*.003;
   const land=Math.abs((screen.orientation&&screen.orientation.angle)||window.orientation||0)===90;
   const gm=land?(e.beta-TL.base):e.gamma, bt=land?-(e.gamma-0):(e.beta-TL.base);
-  TL.orient={y:clamp(gm/14,-1,1)*26, x:clamp((land?0:bt)/16,-1,1)*14-3};
+  TL.orient={y:BY+clamp(gm/18,-1,1)*6, x:BX+clamp((land?0:bt)/20,-1,1)*3.5};
 },{passive:true});
 let tPrev=0; const dtT=ts=>{const d=tPrev?Math.min(.1,(ts-tPrev)/1000):.016; tPrev=ts; return d};
 function updateTilt(ts){
@@ -1976,13 +1991,13 @@ function updateTilt(ts){
   let gx,gy;
   if(performance.now()-TL.last<4000){gx=TL.tx;gy=TL.ty}
   else if(TL.orient){gx=TL.orient.x;gy=TL.orient.y}
-  else if(reduceMotion){gx=-2;gy=0}
-  else{const t=ts/1000; gy=11*Math.sin(TAU*t/60); gx=-4-2*Math.sin(TAU*t/90);}
+  else if(reduceMotion){gx=BX;gy=BY}
+  else{const t=ts/1000; gy=BY+2.5*Math.sin(TAU*t/60); gx=BX-1*Math.sin(TAU*t/90);}
   const kk=1-Math.pow(TL.orient?.85:.94,Math.max(1,dtT(ts)*60)); TL.x+=(gx-TL.x)*kk; TL.y+=(gy-TL.y)*kk;
   const tf=`rotateX(${TL.x.toFixed(2)}deg) rotateY(${TL.y.toFixed(2)}deg)`;
   if(swayEl._t!==tf){swayEl._t=tf; swayEl.style.transform=D3?tf:'perspective(1100px) '+tf;
     if(!D3){
-    const W=seatEl.clientWidth, d=W*.075;                 // gruix aparent del rellotge
+    const W=seatEl.clientWidth, d=W*.03;                 // gruix aparent del rellotge
     const sx=-Math.sin(TL.y*D2R)*d, sy=Math.sin(TL.x*D2R)*d;
     const th=`translate(${(-sx*.9).toFixed(1)}px,${(-sy*.9).toFixed(1)}px)`;
     for(const k of [1,2]) if(thickEl[k]) thickEl[k].style.transform=th;
